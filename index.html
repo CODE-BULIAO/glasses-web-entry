@@ -6,27 +6,31 @@
 <title>营养助手 · 固定入口</title>
 <style>
 body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,sans-serif}
-.box{text-align:center;padding:24px;max-width:520px}
+.box{text-align:center;padding:24px;max-width:560px}
 a{color:#7dd3fc;word-break:break-all}
 .small{color:#94a3b8;font-size:13px;margin-top:16px;line-height:1.6}
+button{margin-top:12px;background:#1d4ed8;color:#fff;border:0;border-radius:8px;padding:8px 18px;font-size:14px}
 </style>
 </head>
 <body>
 <div class="box">
   <div id="status">正在获取营养助手最新地址…</div>
   <div class="small" id="link"></div>
+  <button id="retry" style="display:none" onclick="location.reload()">重试</button>
 </div>
 <script>
-const status=document.getElementById('status'),link=document.getElementById('link');
-fetch('current-target.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{
-  const t=d.target;
-  if(!t)throw new Error('empty');
-  link.innerHTML='目标：<a href="'+t+'">'+t+'</a><br>同步时间：'+(d.updated_at||'');
-  status.textContent='正在跳转到营养助手…';
-  setTimeout(()=>{location.replace(t)},500);
-}).catch(e=>{
-  status.textContent='暂时拿不到最新地址，请稍后刷新重试';
-});
+const status=document.getElementById('status'),link=document.getElementById('link'),retry=document.getElementById('retry');
+function show(t,ts){
+  link.innerHTML='目标：<a href="'+t+'">'+t+'</a><br>同步时间：'+(ts||'')+'<br>若提示无法访问，说明隧道正在重连，几秒后点重试即可';
+}
+function go(t){ status.textContent='正在跳转到营养助手…'; setTimeout(()=>{location.replace(t)},400); }
+fetch('https://api.github.com/repos/CODE-BULIAO/glasses-web-entry/contents/current-target.json',{cache:'no-store'})
+  .then(r=>{if(!r.ok)throw 0;return r.json()})
+  .then(d=>{ const j=JSON.parse(atob((d.content||'').replace(/\s/g,''))); if(!j.target)throw 0; show(j.target,j.updated_at); go(j.target); })
+  .catch(()=>fetch('current-target.json',{cache:'no-store'}).then(r=>r.json()).then(j=>{
+    if(!j.target)throw 0; show(j.target,j.updated_at); go(j.target);
+  }))
+  .catch(()=>{ status.textContent='暂时拿不到最新地址'; retry.style.display='inline-block'; });
 </script>
 </body>
 </html>
