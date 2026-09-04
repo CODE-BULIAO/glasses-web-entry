@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>营养助手 · 固定入口</title>
+<style>
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,sans-serif}
+.box{text-align:center;padding:24px;max-width:520px}
+a{color:#7dd3fc;word-break:break-all}
+.small{color:#94a3b8;font-size:13px;margin-top:16px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="box">
+  <div id="status">正在获取营养助手最新地址…</div>
+  <div class="small" id="link"></div>
+</div>
+<script>
+const status=document.getElementById('status'),link=document.getElementById('link');
+fetch('current-target.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{
+  const t=d.target;
+  if(!t)throw new Error('empty');
+  link.innerHTML='目标：<a href="'+t+'">'+t+'</a><br>同步时间：'+(d.updated_at||'');
+  status.textContent='正在跳转到营养助手…';
+  setTimeout(()=>{location.replace(t)},500);
+}).catch(e=>{
+  status.textContent='暂时拿不到最新地址，请稍后刷新重试';
+});
+</script>
+</body>
+</html>
